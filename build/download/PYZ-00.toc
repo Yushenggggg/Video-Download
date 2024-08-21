@@ -1,4 +1,4 @@
-('C:\\Users\\123\\Desktop\\Toby\\Instagram\\Instagram下載包\\build\\download\\PYZ-00.pyz',
+('C:\\Users\\123\\Desktop\\Toby\\Video Download\\build\\download\\PYZ-00.pyz',
  [('Cryptodome',
    'C:\\Users\\123\\AppData\\Local\\Programs\\Python\\Python312\\Lib\\site-packages\\Cryptodome\\__init__.py',
    'PYMODULE'),
