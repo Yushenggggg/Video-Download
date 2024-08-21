@@ -3,7 +3,7 @@
 範例影片：https://youtu.be/TXWEHQ9Nwzk?si=1K4U2LzFkvtS4oZN
 剛下載好的組合包，下面步驟依序做。
 
-1. 安裝python，我因為裝過了就不在更新，如果下方有出現ADD to Path請勾選他，之後預設安裝
+1. 安裝python (3.12.5 →https://www.python.org/ )，我因為裝過了就不在更新，如果下方有出現ADD to Path請勾選他，之後預設安裝
 
 2. 檢查環境變數是否有python/script 用放大鏡搜尋
 
