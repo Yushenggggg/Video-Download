@@ -11,7 +11,7 @@
 
 4. 測試python正確安裝，輸入python --version (剛剛裝一半又取消安裝應該把python砍掉了)
 
-5. 有出現python + 版本號碼後，再輸入python requirements.py → 安裝使用到的套件
+5.  有出現python + 版本號碼後，再輸入python requirements.py → 安裝使用到的套件
 
 6. 安裝好後輸入pyinstaller --onefile download.py
 
