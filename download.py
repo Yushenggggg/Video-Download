@@ -4,6 +4,11 @@ from tkinter import messagebox, filedialog, simpledialog
 from pytube import YouTube
 import instaloader
 import yt_dlp
+import requests
+from bs4 import BeautifulSoup
+from io import BytesIO
+import os
+
 
 # 創建主窗口
 root = tk.Tk()
@@ -225,6 +230,50 @@ def download_twitter_video():
         messagebox.showinfo("成功", "Twitter影片下載成功！")
     except Exception as e:
         messagebox.showerror("錯誤", f"下載失敗: {e}")
+
+# 定義函數：下載LINE貼圖並轉換為透明背景PNG
+def download_line_stickers():
+    if not select_download_folder():
+        return
+    
+    url = entry_url.get()  # 從輸入框獲取LINE貼圖URL
+    if not url:
+        messagebox.showerror("錯誤", "請提供有效的LINE貼圖URL")
+        return
+
+    try:
+        response = requests.get(url)
+        soup = BeautifulSoup(response.text, 'html.parser')
+        sticker_images = soup.find_all('img', class_='FnStickerPreviewItem')
+
+        # 創建存儲資料夾
+        download_folder = download_path.get()
+        if not os.path.exists(download_folder):
+            os.makedirs(download_folder)
+        
+        for i, img in enumerate(sticker_images):
+            img_url = img['src']
+            img_response = requests.get(img_url)
+            img_data = Image.open(BytesIO(img_response.content))
+            img_data = img_data.convert("RGBA")  # 轉換為RGBA模式
+
+            datas = img_data.getdata()
+            new_data = []
+            for item in datas:
+                # 移除白色背景，並將其設置為透明
+                if item[0] == 255 and item[1] == 255 and item[2] == 255:
+                    new_data.append((255, 255, 255, 0))
+                else:
+                    new_data.append(item)
+
+            img_data.putdata(new_data)
+            img_data.save(f"{download_folder}/sticker_{i + 1}.png")
+
+        messagebox.showinfo("成功", "LINE貼圖下載並已轉換為透明背景PNG格式！")
+    
+    except Exception as e:
+        messagebox.showerror("錯誤", f"下載或處理失敗: {e}")
+
 path = "image/"
 # 打開和調整圖標大小
 youtube_image = Image.open(path + "youtube.png")
@@ -283,6 +332,16 @@ btn_download_tiktok.grid(row=3, column=2, padx=3, pady=3)
 # 在主窗口中添加Twitter下載按鈕
 btn_download_twitter = tk.Button(root, image=twitter_icon, command=download_twitter_video)
 btn_download_twitter.grid(row=4, column=0, padx=3, pady=3)
+
+# LINE圖標
+line_image = Image.open(path + "line.png")
+line_image = line_image.resize((32, 32), Image.Resampling.LANCZOS)
+line_icon = ImageTk.PhotoImage(line_image)
+
+# 添加LINE貼圖下載按鈕
+btn_download_line = tk.Button(root, image=line_icon, command=download_line_stickers)
+btn_download_line.grid(row=4, column=1, padx=3, pady=3)
+
 
 
 
