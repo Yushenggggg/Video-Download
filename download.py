@@ -8,7 +8,10 @@ import requests
 from bs4 import BeautifulSoup
 from io import BytesIO
 import os
-
+from selenium import webdriver
+from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.common.by import By
+from selenium.webdriver.chrome.options import Options
 
 # 創建主窗口
 root = tk.Tk()
@@ -235,45 +238,69 @@ def download_twitter_video():
 def download_line_stickers():
     if not select_download_folder():
         return
-    
-    url = entry_url.get()  # 從輸入框獲取LINE貼圖URL
+    url = entry_url.get()  # 从输入框获取 LINE 贴图 URL
     if not url:
-        messagebox.showerror("錯誤", "請提供有效的LINE貼圖URL")
+        messagebox.showerror("错误", "请提供有效的 LINE 贴图 URL")
         return
 
-    try:
-        response = requests.get(url)
-        soup = BeautifulSoup(response.text, 'html.parser')
-        sticker_images = soup.find_all('img', class_='FnStickerPreviewItem')
+    download_folder = download_path.get()  # 从输入框获取存储路径
+    if not download_folder:
+        messagebox.showerror("错误", "请提供有效的下载路径")
+        return
 
-        # 創建存儲資料夾
-        download_folder = download_path.get()
-        if not os.path.exists(download_folder):
+    # 检查下载路径是否存在，若不存在则创建该文件夹
+    if not os.path.exists(download_folder):
+        try:
             os.makedirs(download_folder)
-        
-        for i, img in enumerate(sticker_images):
-            img_url = img['src']
-            img_response = requests.get(img_url)
-            img_data = Image.open(BytesIO(img_response.content))
-            img_data = img_data.convert("RGBA")  # 轉換為RGBA模式
+        except Exception as e:
+            messagebox.showerror("错误", f"创建目录失败: {e}")
+            return
 
-            datas = img_data.getdata()
-            new_data = []
-            for item in datas:
-                # 移除白色背景，並將其設置為透明
-                if item[0] == 255 and item[1] == 255 and item[2] == 255:
-                    new_data.append((255, 255, 255, 0))
-                else:
-                    new_data.append(item)
+    try:
+        # 设置 Selenium 的 Chrome 浏览器选项
+        chrome_options = Options()
+        chrome_options.add_argument("--headless")  # 无头模式
+        chrome_options.add_argument("--disable-gpu")
 
-            img_data.putdata(new_data)
-            img_data.save(f"{download_folder}/sticker_{i + 1}.png")
+        # 设置 Brave 浏览器路径
+        brave_path = 'C:/Program Files/BraveSoftware/Brave-Browser/Application/brave.exe'  # 替换为实际的 Brave 路径
+        chrome_options.binary_location = brave_path
 
-        messagebox.showinfo("成功", "LINE貼圖下載並已轉換為透明背景PNG格式！")
-    
+        # 设置 ChromeDriver 的路径
+        chrome_driver_path = 'path/to/chromedriver'  # 替换为实际的 ChromeDriver 路径
+        chrome_service = Service(chrome_driver_path)
+
+        # 启动 Selenium WebDriver
+        driver = webdriver.Chrome(service=chrome_service, options=chrome_options)
+        driver.get(url)
+
+        # 查找所有图片元素
+        img_elements = driver.find_elements(By.TAG_NAME, 'img')
+
+        # 遍历找到的图片，下载并保存符合条件的图片
+        for i, img_element in enumerate(img_elements):
+            img_url = img_element.get_attribute('src')
+
+            if img_url and img_url.lower().endswith('.png'):
+                try:
+                    # 下载图片
+                    img_response = requests.get(img_url)
+                    img_response.raise_for_status()
+
+                    # 将图片保存为 PNG 格式
+                    img_data = Image.open(BytesIO(img_response.content))
+                    img_data.save(os.path.join(download_folder, f"sticker_{i + 1}.png"))
+                    print(f"下载并保存: {img_url}")  # 打印下载的图片 URL
+                except Exception as e:
+                    messagebox.showwarning("警告", f"保存图片失败: {e}")
+
+        driver.quit()
+        messagebox.showinfo("成功", "所有 PNG 图片已成功下载！")
+
     except Exception as e:
-        messagebox.showerror("錯誤", f"下載或處理失敗: {e}")
+        messagebox.showerror("错误", f"下载或处理失败: {e}")
 
+#https://store.line.me/stickershop/product/25214058/zh-Hant?from=sticker
 path = "image/"
 # 打開和調整圖標大小
 youtube_image = Image.open(path + "youtube.png")
